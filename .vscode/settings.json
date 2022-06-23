@@ -1,0 +1,12 @@
+{
+    "cmake.configureEnvironment": {
+        "PICO_SDK_PATH": "/pico/pico-sdk"
+    },
+    "cmake.generator": "Unix Makefiles",
+    "cmake.configureOnOpen": true,
+    "C_Cpp.loggingLevel": "Debug",
+    "cmake.loggingLevel": "debug",
+    "files.associations": {
+        "stdlib.h": "c"
+    }
+}
