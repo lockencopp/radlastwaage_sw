@@ -4,9 +4,9 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [{
-        "name": "JLink Debug",
+        "name": "JLink Debug Main",
         "cwd": "${workspaceRoot}",
-        "executable": "./build/test.elf",
+        "executable": "./build/rl_main/rl_main.elf",
         "request": "launch",
         "type": "cortex-debug",
         "servertype": "jlink",
@@ -19,9 +19,48 @@
         // "svdFile": "${workspaceRoot}/S32K116.svd"
     },
     {
-        "name": "Pico Debug",
+        "name": "JLink Debug Sub",
         "cwd": "${workspaceRoot}",
-        "executable": "./build/test.elf",
+        "executable": "./build/rl_sub/rl_sub.elf",
+        "request": "launch",
+        "type": "cortex-debug",
+        "servertype": "jlink",
+        "serverpath": "/opt/jlink/JLinkGDBServerCLExe",
+        "armToolchainPath": "/usr/bin",
+        "device": "RP2040_M0_0",
+        "interface": "swd",
+        "serialNumber": "", // add J-Link serial number if having multiple attached the same time.
+        "runToMain": true,
+        // "svdFile": "${workspaceRoot}/S32K116.svd"
+    },
+    {
+        "name": "Pico Debug Main",
+        "cwd": "${workspaceRoot}",
+        "executable": "./build/rl_main/rl_main.elf",
+        "request": "launch",
+        "type": "cortex-debug",
+        "servertype": "openocd",
+        // This may need to be arm-none-eabi-gdb depending on your system
+        //"gdbPath" : "arm-none-eabi-gdb",
+        "gdbPath" : "arm-none-eabi-gdb",
+        "device": "RP2040",
+        "configFiles": [
+            "interface/picoprobe.cfg",
+            "target/rp2040.cfg"
+        ],
+        "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/rp2040.svd",
+        "runToMain": true,
+        // Work around for stopping at main on restart
+        "postRestartCommands": [
+            "break main",
+            "continue"
+        ],
+        "searchDir": ["<PATH TO TCL>"]
+    },
+    {
+        "name": "Pico Debug Sub",
+        "cwd": "${workspaceRoot}",
+        "executable": "./build/rl_sub/rl_sub.elf",
         "request": "launch",
         "type": "cortex-debug",
         "servertype": "openocd",
