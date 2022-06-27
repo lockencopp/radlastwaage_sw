@@ -44,15 +44,15 @@ set(TFT_OPTIONS TFT_ENABLE_RED TFT_ENABLE_RESET TFT_ENABLE_TEXT TFT_ENABLE_SHAPE
 #  - TFT_ENABLE_ROTATE
 #  - TFT_ENABLE_BMP  (not implemented yet)
 
-add_compile_definitions(SPI_TFT_PORT=${SPI_TFT_PORT})
-add_compile_definitions(SPI_TFT_CS=${SPI_TFT_CS})
-add_compile_definitions(SPI_TFT_DC=${SPI_TFT_DC})
-add_compile_definitions(SPI_TFT_RST=${SPI_TFT_RST})
 foreach(opt IN LISTS TFT_OPTIONS)
     message(">>> using: ${opt}")
     add_compile_definitions(${opt})
 endforeach(opt)
 
+add_compile_definitions(SPI_TFT_PORT=${SPI_TFT_PORT})
+add_compile_definitions(SPI_TFT_CS=${SPI_TFT_CS})
+add_compile_definitions(SPI_TFT_DC=${SPI_TFT_DC})
+add_compile_definitions(SPI_TFT_RST=${SPI_TFT_RST})
 add_compile_definitions(SPI_TFT_PORT=${SPI_TFT_PORT})
 add_compile_definitions(SPI_TFT_RX=${SPI_TFT_RX})
 add_compile_definitions(SPI_TFT_TX=${SPI_TFT_TX})
