@@ -1,11 +1,24 @@
 {
     "name": "devcontainer:latest",
-    "build": {"dockerfile": "Dockerfile"},
-    "runArgs": ["--entrypoint=", "--rm", "--privileged"],
-    "extensions": ["ms-vscode.cmake-tools", "twxs.cmake", "ms-vscode.cpptools", "marus25.cortex-debug"],
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--entrypoint=",
+        "--rm",
+        "--privileged"
+    ],
+    "extensions": [
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "ms-vscode.cpptools",
+        "marus25.cortex-debug"
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/${localWorkspaceFolder},type=bind",
+    "workspaceFolder": "/${localWorkspaceFolder}",
     "mounts": [
         "source=picoDevVol,target=/home/user/.vscode-server/extensions,type=volume",
         // And/or for VS Code Insiders
-        "source=picoDevVolInsiders,target=/home/user/.vscode-server-insiders/extensions,type=volume",
+        "source=picoDevVolInsiders,target=/home/user/.vscode-server-insiders/extensions,type=volume"
     ]
 }

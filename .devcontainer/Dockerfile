@@ -36,14 +36,19 @@ WORKDIR /pico/pico-sdk
 RUN git submodule update --init
 
 # add user and make directories to persistently store extension (prevent installation when connecting to container)
-RUN useradd -ms /bin/bash user
+ARG USER=user
+ARG UID=1000
+ARG GID=1000
+ARG PW=user
 
-ARG USERNAME=user
+RUN useradd -m ${USER} --uid=${UID} && echo "${USER}:${PW}" | \chpasswd
 
-RUN mkdir -p /home/$USERNAME/.vscode-server/extensions \
-        /home/$USERNAME/.vscode-server-insiders/extensions \
-    && chown -R $USERNAME \
-        /home/$USERNAME/.vscode-server \
-        /home/$USERNAME/.vscode-server-insiders
+RUN mkdir -p /home/${USER}/.vscode-server/extensions \
+        /home/${USER}/.vscode-server-insiders/extensions \
+    && chown -R ${USER} \
+        /home/${USER}/.vscode-server \
+        /home/${USER}/.vscode-server-insiders
+
+USER ${USER}
 
 #ENV PICO_SDK_PATH=/pico/pico-sdk
