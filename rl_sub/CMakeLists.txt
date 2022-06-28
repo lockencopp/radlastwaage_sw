@@ -5,6 +5,12 @@ add_executable(rl_sub
 # Pull in basic dependencies
 target_link_libraries(rl_sub pico_stdlib hardware_spi)
 
+include_directories(hx71708/)
+
+target_sources(rl_sub PRIVATE
+        hx71708/hx71708.c
+)
+
 # create map/bin/hex file etc.
 pico_add_extra_outputs(rl_sub)
 
