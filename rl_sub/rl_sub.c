@@ -47,8 +47,8 @@ volatile int timerval2 = 0;
 HX71708_t hx1 = { .dout = HX1_DOUT, .sck = HX1_SCK, .offset = 0, .offset_counter = 0 };
 HX71708_t hx2 = { .dout = HX2_DOUT, .sck = HX2_SCK, .offset = 0, .offset_counter = 0 };
 
-uint32_t timeNow = 0;
-uint32_t timeLast = 0;
+uint32_t time_now = 0;
+uint32_t time_last = 0;
 int32_t hx1_data = 0;
 int32_t hx2_data = 0;
 
@@ -99,15 +99,15 @@ int main() {
             read_flag = 0;
         }
 
-        timeNow = time_us_64() / 1000;
+        time_now = time_us_64() / 1000;
 
-        if (timeNow != timeLast) {
+        if (time_now != time_last) {
             
             if (!gpio_get(HX1_DOUT) && !gpio_get(HX2_DOUT)) {
                 hx1_data = HX71708_read(&hx1);
                 hx2_data = HX71708_read(&hx2);
             }
-            if ((timeNow % 100) == 0) {
+            if ((time_now % 100) == 0) {
 
                 printf("%c%c%c%c", 0x1B, 0x5B, 0x32, 0x4A);
                 printf("HX1: %.1f\t%d\n", (hx1_data / 13.2), hx1.sample_stats.sample_time);
@@ -117,7 +117,7 @@ int main() {
 
                 gpio_xor_mask(1 << LED_PIN);
             }
-            timeLast = timeNow;
+            time_last = time_now;
         }
     }
 }
