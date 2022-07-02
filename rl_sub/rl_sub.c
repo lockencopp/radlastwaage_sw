@@ -88,7 +88,7 @@ int main() {
 
     while (1) {
         if (read_flag == 1) {
-            int32_t result = (hx1_data + hx2_data);
+            int32_t result = ~(hx1_data + hx2_data);
 
             out_buf[0] = (uint8_t)((result >> 24) & 0xFF);
             out_buf[1] = (uint8_t)((result >> 16) & 0xFF);

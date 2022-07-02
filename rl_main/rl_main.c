@@ -51,7 +51,7 @@
 #define SPI_COM_CS3     22
 #define BTN_IN          14
 
-#define MIN_PADDING     5
+#define MAX_PADDING     3
 
 #define KG_CALIB_FACTOR 13200.0f
 
@@ -102,14 +102,15 @@ uint mode_switch_counter = 0;
 
 // can be used to pad number outputs e.g. sprintf(disp_buf, "2: %*.1f", padLeftCalc(result_sub1), result_sub1);
 int padLeftCalc(float input) {
-    int padding = MIN_PADDING;
-    if (input < -100) {
+    int padding = MAX_PADDING;
+    if (input <= -100) {
         padding = padding - 3;
-    } else if ((result_sub0 > 100) || (result_sub0 < -10)) {
+    } else if ((input >= 100) || (input <= -10)) {
         padding = padding - 2;
-    } else if ((result_sub0 > 10) || (result_sub0 < 0)) {
+    } else if ((input >= 10) || (input < 0)) {
         padding = padding - 1;
-    } else if (result_sub0 >= 0) {
+    } else if (input >= 0.0) {
+        padding = MAX_PADDING;
     }
     return padding;
 }
@@ -157,19 +158,25 @@ float readSub(uint sub_num) {
     sleep_us(100);
     spi_write_read_blocking(SPI_COM_PORT, out_buf, in_buf, 4);
 
-    int result = (in_buf[0] << 24) | (in_buf[1] << 16) | (in_buf[2] << 8) | in_buf[3];
-
-    float result_f = result / KG_CALIB_FACTOR;
-
     sleep_us(100);
 
     gpio_put(hxChipSelect[sub_num], 1);
 
-    return result_f;
+    int result = (in_buf[0] << 24) | (in_buf[1] << 16) | (in_buf[2] << 8) | in_buf[3];
+
+    if (result == 0) {
+        return -1000;
+    } else {
+        return ~result / KG_CALIB_FACTOR;
+    }
+
+
+
+
 
 }
 
-char disp_buf[5];
+char disp_buf[10];
 
 int main() {
     // Enable UART so we can print
@@ -192,13 +199,13 @@ int main() {
     drawFastVLine(0, 0, 64, ST7735_WHITE);
 
     sprintf(disp_buf, "1:");
-    drawText(10, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    drawText(5, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
     sprintf(disp_buf, "2:");
-    drawText(10, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    drawText(5, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
     sprintf(disp_buf, "3:");
-    drawText(10, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    drawText(5, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
     sprintf(disp_buf, "4:");
-    drawText(10, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    drawText(5, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
 
     while (1) {
         time_now = time_us_32() / 1000;
@@ -236,20 +243,40 @@ int main() {
                 btn_last = btn_now;
             }
             if ((time_now % 200) == 1) {
-                result_sub0 = readSub(0);
-                gpio_xor_mask(1 << LED0);
+                float temp_result_sub0 = readSub(0);
+                if (temp_result_sub0 == -1000) {
+                    gpio_put(LED0, 0);
+                } else {
+                    result_sub0 = temp_result_sub0;
+                    gpio_xor_mask(1 << LED0);
+                }
             }
             if ((time_now % 200) == 3) {
-                result_sub1 = readSub(1);
-                gpio_xor_mask(1 << LED1);
+                int temp_result_sub1 = readSub(1);
+                if (temp_result_sub1 == -1000) {
+                    gpio_put(LED1, 0);
+                } else {
+                    result_sub1 = temp_result_sub1;
+                    gpio_xor_mask(1 << LED1);
+                }
             }
             if ((time_now % 200) == 5) {
-                result_sub2 = readSub(2);
-                gpio_xor_mask(1 << LED2);
+                int temp_result_sub2 = readSub(2);
+                if (temp_result_sub2 == -1000) {
+                    gpio_put(LED2, 0);
+                } else {
+                    result_sub2 = temp_result_sub2;
+                    gpio_xor_mask(1 << LED2);
+                }
             }
             if ((time_now % 200) == 7) {
-                result_sub3 = readSub(3);
-                gpio_xor_mask(1 << LED3);
+                int temp_result_sub3 = readSub(3);
+                if (temp_result_sub3 == -1000) {
+                    gpio_put(LED3, 0);
+                } else {
+                    result_sub3 = temp_result_sub3;
+                    gpio_xor_mask(1 << LED3);
+                }
             }
             if ((time_now % 200) == 9) {
                 // Write the output buffer to MOSI, and at the same time read from MISO.
@@ -263,6 +290,7 @@ int main() {
                     if (mode_next == kPercent) {
                         mode_switch_counter++;
                         if (mode_switch_counter == 1) {
+                            fillRect(62, 40, 36, 48, ST7735_BLACK);
                             drawRectWH(62, 40, 36, 48, ST7735_WHITE);
                             drawText(65, 43, "%", ST7735_WHITE, ST7735_BLACK, 6);
                         } else if (mode_switch_counter > 10) {
@@ -277,14 +305,14 @@ int main() {
                             mode_switch_counter = 0;
                         }
                     } else {
-                        sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub0), result_sub0);
-                        drawText(64, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                        sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub1), result_sub1);
-                        drawText(64, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                        sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub2), result_sub2);
-                        drawText(64, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                        sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub3), result_sub3);
-                        drawText(64, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                        sprintf(disp_buf, "%*s%.1f", padLeftCalc(result_sub0), "", result_sub0);
+                        drawText(39, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                        sprintf(disp_buf, "%*s%.1f", padLeftCalc(result_sub1), "", result_sub1);
+                        drawText(39, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                        sprintf(disp_buf, "%*s%.1f", padLeftCalc(result_sub2), "", result_sub2);
+                        drawText(39, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                        sprintf(disp_buf, "%*s%.1f", padLeftCalc(result_sub3), "", result_sub3);
+                        drawText(39, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
                     }
                     break;
 
@@ -296,6 +324,7 @@ int main() {
 
                         mode_switch_counter++;
                         if (mode_switch_counter == 1) {
+                            fillRect(44, 40, 72, 48, ST7735_BLACK);
                             drawRectWH(44, 40, 72, 48, ST7735_WHITE);
                             drawText(47, 43, "kg", ST7735_WHITE, ST7735_BLACK, 6);
 
@@ -311,21 +340,26 @@ int main() {
                             mode_switch_counter = 0;
                         }
                     } else {
-                        int result_sum = result_sub0 + result_sub1 + result_sub2 + result_sub3;
+                        float result_sum = result_sub0 + result_sub1 + result_sub2 + result_sub3;
                         if (result_sum == 0) {
                             drawText(64, 4, "   NA", ST7735_WHITE, ST7735_BLACK, 3);
                             drawText(64, 36, "   NA", ST7735_WHITE, ST7735_BLACK, 3);
                             drawText(64, 68, "   NA", ST7735_WHITE, ST7735_BLACK, 3);
                             drawText(64, 100, "   NA", ST7735_WHITE, ST7735_BLACK, 3);
                         } else {
-                            sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub0/result_sum), result_sub0/result_sum);
-                            drawText(64, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                            sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub1/result_sum), result_sub1/result_sum);
-                            drawText(64, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                            sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub2/result_sum), result_sub2/result_sum);
-                            drawText(64, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-                            sprintf(disp_buf, "%*.1f", padLeftCalc(result_sub3/result_sum), result_sub3/result_sum);
-                            drawText(64, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                            int result_sub0_percent = (int)((result_sub0 * 100.0) / result_sum);
+                            int result_sub1_percent = (int)((result_sub1 * 100.0) / result_sum);
+                            int result_sub2_percent = (int)((result_sub2 * 100.0) / result_sum);
+                            int result_sub3_percent = (int)((result_sub3 * 100.0) / result_sum);
+                            printf("%d\t%.2f\n", padLeftCalc(result_sub0_percent), result_sub0_percent);
+                            sprintf(disp_buf, "%*s%d", padLeftCalc(result_sub0_percent) + 2, "", result_sub0_percent); //padLeftCalc(result_sub0/result_sum)
+                            drawText(39, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                            sprintf(disp_buf, "%*s%d", padLeftCalc(result_sub1_percent) + 2, "", result_sub1_percent);
+                            drawText(39, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                            sprintf(disp_buf, "%*s%d", padLeftCalc(result_sub2_percent) + 2, "", result_sub2_percent);
+                            drawText(39, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+                            sprintf(disp_buf, "%*s%d", padLeftCalc(result_sub3_percent) + 2, "", result_sub3_percent);
+                            drawText(39, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
                         }
                     }
                     break;

@@ -7,6 +7,10 @@
     "C_Cpp.loggingLevel": "Debug",
     "cmake.loggingLevel": "debug",
     "files.associations": {
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "cmath": "c",
+        "*.tcc": "c",
+        "cinttypes": "c",
+        "cstdlib": "c"
     }
 }
