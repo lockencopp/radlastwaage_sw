@@ -33,8 +33,6 @@
 
 #define BUF_LEN 0x04
 
-
-
 #define SPI_COM_PORT    spi0
 #define SPI_COM_RX      16
 #define SPI_COM_TX      19
@@ -148,15 +146,15 @@ void init_hw() {
 }
 
 float readSub(uint sub_num) {
-    uint8_t out_buf[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    uint8_t in_buf[4];
+    uint8_t out_buf[BUF_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF };
+    uint8_t in_buf[BUF_LEN];
 
     assert(sub_num < 4);
 
     gpio_put(hxChipSelect[sub_num], 0);
 
     sleep_us(100);
-    spi_write_read_blocking(SPI_COM_PORT, out_buf, in_buf, 4);
+    spi_write_read_blocking(SPI_COM_PORT, out_buf, in_buf, BUF_LEN);
 
     sleep_us(100);
 
@@ -169,11 +167,6 @@ float readSub(uint sub_num) {
     } else {
         return ~result / KG_CALIB_FACTOR;
     }
-
-
-
-
-
 }
 
 char disp_buf[10];
@@ -252,7 +245,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 3) {
-                int temp_result_sub1 = readSub(1);
+                float temp_result_sub1 = readSub(1);
                 if (temp_result_sub1 == -1000) {
                     gpio_put(LED1, 0);
                 } else {
@@ -261,7 +254,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 5) {
-                int temp_result_sub2 = readSub(2);
+                float temp_result_sub2 = readSub(2);
                 if (temp_result_sub2 == -1000) {
                     gpio_put(LED2, 0);
                 } else {
@@ -270,7 +263,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 7) {
-                int temp_result_sub3 = readSub(3);
+                float temp_result_sub3 = readSub(3);
                 if (temp_result_sub3 == -1000) {
                     gpio_put(LED3, 0);
                 } else {
