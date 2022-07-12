@@ -169,11 +169,6 @@ float readSub(uint sub_num) {
     } else {
         return ~result / KG_CALIB_FACTOR;
     }
-
-
-
-
-
 }
 
 char disp_buf[10];
@@ -252,7 +247,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 3) {
-                int temp_result_sub1 = readSub(1);
+                float temp_result_sub1 = readSub(1);
                 if (temp_result_sub1 == -1000) {
                     gpio_put(LED1, 0);
                 } else {
@@ -261,7 +256,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 5) {
-                int temp_result_sub2 = readSub(2);
+                float temp_result_sub2 = readSub(2);
                 if (temp_result_sub2 == -1000) {
                     gpio_put(LED2, 0);
                 } else {
@@ -270,7 +265,7 @@ int main() {
                 }
             }
             if ((time_now % 200) == 7) {
-                int temp_result_sub3 = readSub(3);
+                float temp_result_sub3 = readSub(3);
                 if (temp_result_sub3 == -1000) {
                     gpio_put(LED3, 0);
                 } else {
