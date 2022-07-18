@@ -28,6 +28,7 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "hardware/spi.h"
+#include "pico/multicore.h"
 
 #include "hx71708.h"
 
@@ -55,14 +56,60 @@ int32_t hx2_data = 0;
 void gpio_callback(uint gpio, uint32_t events) {
     // Put the GPIO event(s) that just happened into event_str
     // so we can print it
-    if (gpio_get(gpio)) {
+    if (!gpio_get(gpio)) {
         read_flag = 1;
+        //gpio_init(SPI_COM_TX);
+        gpio_set_function(SPI_COM_TX, GPIO_FUNC_SPI);
         timerval2 = time_us_64();
     } else {
         timerval1 = time_us_64();
+        //gpio_init(SPI_COM_TX);
+        gpio_set_function(SPI_COM_TX, GPIO_FUNC_SIO);
+        //gpio_set_dir(SPI_COM_TX, GPIO_IN);
     }
 }
 
+// Core 1 interrupt Handler
+void core1_interrupt_handler() {
+
+}
+
+// Core 1 Main Code
+/*
+void core1_entry() {
+
+    while (!gpio_get(SPI_COM_CS)) {
+        __asm__("NOP");
+    }
+
+    sleep_ms(2000);
+
+    while (1) {
+        while (gpio_get(SPI_COM_CS)) {
+            __asm__("NOP");
+        }
+        gpio_set_function(SPI_COM_TX, GPIO_FUNC_SPI);
+
+        int32_t result = multicore_fifo_pop_blocking();
+
+        out_buf[0] = (uint8_t)((result >> 24) & 0xFF);
+        out_buf[1] = (uint8_t)((result >> 16) & 0xFF);
+        out_buf[2] = (uint8_t)((result >> 8) & 0xFF);
+        out_buf[3] = (uint8_t)(result & 0xFF);
+
+        spi_write_read_blocking(SPI_COM_PORT, out_buf, in_buf, BUF_LEN);
+
+        while (!gpio_get(SPI_COM_CS)) {
+            __asm__("NOP");
+        }
+
+        gpio_set_function(SPI_COM_TX, GPIO_FUNC_SIO);
+
+        
+    }
+
+}
+*/
 int main() {
     // Enable UART so we can print
     stdio_init_all();
@@ -73,22 +120,39 @@ int main() {
     spi_set_slave(SPI_COM_PORT, true);
     gpio_set_function(SPI_COM_RX, GPIO_FUNC_SPI);
     gpio_set_function(SPI_COM_SCK, GPIO_FUNC_SPI);
-    gpio_set_function(SPI_COM_TX, GPIO_FUNC_SPI);
+    //gpio_set_function(SPI_COM_TX, GPIO_FUNC_SPI);
     gpio_set_function(SPI_COM_CS, GPIO_FUNC_SPI);
-    gpio_set_irq_enabled_with_callback(SPI_COM_CS, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
 
+    gpio_set_function(SPI_COM_TX, GPIO_FUNC_SIO);
+    //gpio_set_dir(SPI_COM_TX, GPIO_IN);
+
+    gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     gpio_put(LED_PIN, 0);
 
-    uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
-
     HX71708_init();
+
+    gpio_set_irq_enabled_with_callback(SPI_COM_CS, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+
+    //multicore_launch_core1(core1_entry);
 
     printf("Start!\n");
 
+    int timestamp = (time_us_64() / 1000) + 1000;
+    int enable_flag = 0;
+
     while (1) {
-        if (read_flag == 1) {
+        time_now = time_us_64() / 1000;
+        if(enable_flag == 0){
+            enable_flag = time_now > timestamp;
+        } else if(enable_flag == 1){
+            
+            enable_flag++;
+        }
+
+        if ((read_flag == 1) && (enable_flag == 2)) {
             int32_t result = ~(hx1_data + hx2_data);
+            uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
 
             out_buf[0] = (uint8_t)((result >> 24) & 0xFF);
             out_buf[1] = (uint8_t)((result >> 16) & 0xFF);
@@ -96,26 +160,27 @@ int main() {
             out_buf[3] = (uint8_t)(result & 0xFF);
 
             spi_write_read_blocking(SPI_COM_PORT, out_buf, in_buf, BUF_LEN);
+            gpio_xor_mask(1 << LED_PIN);
             read_flag = 0;
         }
 
-        time_now = time_us_64() / 1000;
-
         if (time_now != time_last) {
-            
+
             if (!gpio_get(HX1_DOUT) && !gpio_get(HX2_DOUT)) {
                 hx1_data = HX71708_read(&hx1);
                 hx2_data = HX71708_read(&hx2);
+
+                int32_t result = ~(hx1_data + hx2_data);
+                //multicore_fifo_drain();
+                //multicore_fifo_push_blocking(result);
             }
             if ((time_now % 100) == 0) {
 
                 printf("%c%c%c%c", 0x1B, 0x5B, 0x32, 0x4A);
-                printf("HX1: %.1f\t%d\n", (hx1_data / 13.2), hx1.sample_stats.sample_time);
-                printf("HX2: %.1f\t%d\n", (hx2_data / 13.2), hx2.sample_stats.sample_time);
+                printf("HX1: %.1f\t%d\t%d\n", (hx1_data / 13.2), hx1.offset, hx1.sample_stats.sample_time);
+                printf("HX2: %.1f\t%d\t%d\n", (hx2_data / 13.2), hx2.offset, hx2.sample_stats.sample_time);
                 printf("Total: %.1f\n", ((hx1_data + hx2_data) / 13.2));
                 printf("Timerdiff: %d\n", timerval2 - timerval1);
-
-                gpio_xor_mask(1 << LED_PIN);
             }
             time_last = time_now;
         }

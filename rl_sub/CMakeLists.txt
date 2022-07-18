@@ -3,7 +3,7 @@ add_executable(rl_sub
         )
 
 # Pull in basic dependencies
-target_link_libraries(rl_sub pico_stdlib hardware_spi)
+target_link_libraries(rl_sub pico_multicore pico_stdlib hardware_spi)
 
 include_directories(hx71708/)
 
