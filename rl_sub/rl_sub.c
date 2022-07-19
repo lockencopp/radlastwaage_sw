@@ -36,7 +36,7 @@
 
 #include "hx71708.h"
 
-#define BUF_LEN         0x04
+#define BUF_LEN         4
 
 #define LED_PIN         25
 #define SPI_COM_PORT    spi0
@@ -45,16 +45,16 @@
 #define SPI_COM_SCK     18
 #define SPI_COM_CS      17
 
-volatile int timerval1 = 0;
-volatile int timerval2 = 0;
-
 HX71708_t hx1 = { .dout = HX1_DOUT, .sck = HX1_SCK, .offset = 0, .offset_counter = 0 };
 HX71708_t hx2 = { .dout = HX2_DOUT, .sck = HX2_SCK, .offset = 0, .offset_counter = 0 };
 
-uint32_t time_now = 0;
-uint32_t time_last = 0;
-int32_t hx1_data = 0;
-int32_t hx2_data = 0;
+volatile int timerval1 = 0;
+volatile int timerval2 = 0;
+
+uint32_t time_now   = 0;
+uint32_t time_last  = 0;
+int32_t hx1_data    = 0;
+int32_t hx2_data    = 0;
 
 uint8_t out_buf[4], in_buf[5];
 
