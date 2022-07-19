@@ -98,6 +98,9 @@ Mode mode_now;
 Mode mode_next;
 uint mode_switch_counter = 0;
 
+uint tare_flag = 0;
+uint8_t out_buf[BUF_LEN] = { 'N', 'O', 'N', 'E' };
+
 // can be used to pad number outputs e.g. sprintf(disp_buf, "2: %*.1f", padLeftCalc(result_sub1), result_sub1);
 int padLeftCalc(float input) {
     int padding = MAX_PADDING;
@@ -146,7 +149,6 @@ void init_hw() {
 }
 
 float readSub(uint sub_num) {
-    uint8_t out_buf[BUF_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF };
     uint8_t in_buf[BUF_LEN];
 
     assert(sub_num < 4);
@@ -229,17 +231,33 @@ int main() {
                         }
                         if (btn_counter > 20) {
                             printf("holding action");
+                            tare_flag = 1;
                             btn_counter = 0;
                         }
                     }
                 }
                 btn_last = btn_now;
             }
+            if ((time_now % 200) == 0) {
+                if (tare_flag == 1) {
+                    out_buf[0] = 'T';
+                    out_buf[1] = 'A';
+                    out_buf[2] = 'R';
+                    out_buf[3] = 'E';
+                    tare_flag = 2;
+                } else if (tare_flag == 2) {
+                    out_buf[0] = 'N';
+                    out_buf[1] = 'O';
+                    out_buf[2] = 'N';
+                    out_buf[3] = 'E';
+                    tare_flag = 0;
+                }
+            }
             if ((time_now % 200) == 1) {
                 float temp_result_sub0 = readSub(0);
                 if (temp_result_sub0 == -1000) {
                     gpio_put(LED0, 0);
-                } else {
+                } else if ((temp_result_sub0 < 1000) && (temp_result_sub0 > -999)) {
                     result_sub0 = temp_result_sub0;
                     gpio_xor_mask(1 << LED0);
                 }
@@ -248,7 +266,7 @@ int main() {
                 float temp_result_sub1 = readSub(1);
                 if (temp_result_sub1 == -1000) {
                     gpio_put(LED1, 0);
-                } else {
+                } else if ((temp_result_sub1 < 1000) && (temp_result_sub1 > -999)) {
                     result_sub1 = temp_result_sub1;
                     gpio_xor_mask(1 << LED1);
                 }
@@ -257,7 +275,7 @@ int main() {
                 float temp_result_sub2 = readSub(2);
                 if (temp_result_sub2 == -1000) {
                     gpio_put(LED2, 0);
-                } else {
+                } else if ((temp_result_sub2 < 1000) && (temp_result_sub2 > -999)) {
                     result_sub2 = temp_result_sub2;
                     gpio_xor_mask(1 << LED2);
                 }
@@ -266,7 +284,7 @@ int main() {
                 float temp_result_sub3 = readSub(3);
                 if (temp_result_sub3 == -1000) {
                     gpio_put(LED3, 0);
-                } else {
+                } else if ((temp_result_sub3 < 1000) && (temp_result_sub3 > -999)) {
                     result_sub3 = temp_result_sub3;
                     gpio_xor_mask(1 << LED3);
                 }
