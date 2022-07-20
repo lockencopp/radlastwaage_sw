@@ -29,10 +29,10 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "hardware/spi.h"
-#include "pico/multicore.h"
 
 #include "hx71708.h"
 
@@ -107,13 +107,13 @@ int main() {
                 spi_get_hw(SPI_COM_PORT)->dr = out_buf[2];
                 spi_get_hw(SPI_COM_PORT)->dr = out_buf[3];
             }
-            if (spi_is_readable(SPI_COM_PORT)){
+            if (spi_is_readable(SPI_COM_PORT)) {
                 in_buf[0] = spi_get_hw(SPI_COM_PORT)->dr;
                 in_buf[1] = spi_get_hw(SPI_COM_PORT)->dr;
                 in_buf[2] = spi_get_hw(SPI_COM_PORT)->dr;
                 in_buf[3] = spi_get_hw(SPI_COM_PORT)->dr;
             }
-            if (strcmp(in_buf,"TARE") == 0){
+            if (strcmp(in_buf, "TARE") == 0) {
                 hx1.offset_counter = 0;
                 hx1.offset = 0;
                 hx2.offset_counter = 0;
@@ -145,7 +145,7 @@ int main() {
                 printf("Timerdiff: %d\n", timerval2 - timerval1);
                 printf("In Buffer: ");
                 printf(in_buf);
-                
+
             }
             time_last = time_now;
         }

@@ -1,8 +1,9 @@
 project(rl_main)
 
 add_executable(rl_main
-rl_main.c
-st7735-testfuncs/tst_funcs.c)
+    rl_main.c
+    st7735-testfuncs/tst_funcs.c
+)
 
 # Pull in basic dependencies
 target_link_libraries(rl_main PUBLIC pico_stdlib)
@@ -27,8 +28,8 @@ set(SPI_TFT_RX   "12"   CACHE STRING "TFT RX  pin number")
 set(SPI_TFT_TX   "11"   CACHE STRING "TFT TX  pin number")
 set(SPI_TFT_SCK  "10"   CACHE STRING "TFT SCK pin number")
 set(TFT_OPTIONS TFT_ENABLE_RED TFT_ENABLE_RESET TFT_ENABLE_TEXT TFT_ENABLE_SHAPES
-                TFT_ENABLE_ROTATE TFT_ENABLE_SCROLL
-            CACHE STRING "TFT options/functions")
+    TFT_ENABLE_ROTATE TFT_ENABLE_SCROLL
+CACHE STRING "TFT options/functions")
 
 # TFT options/functions. Complete list:
 #  - TFT_ENABLE_BLACK
@@ -61,31 +62,29 @@ add_compile_definitions(SPI_TFT_SCK=${SPI_TFT_SCK})
 # ENABLE_FONTS: set on command-line or select from
 # VSCode-menu (see .vscode/cmake-variants.json)
 if(ENABLE_FONTS)
-  message(">>> Font test")
-  add_compile_definitions(TFT_ENABLE_FONTS ENABLE_TEST9 ENABLE_TEST9A)
+    message(">>> Font test")
+    add_compile_definitions(TFT_ENABLE_FONTS ENABLE_TEST9 ENABLE_TEST9A)
 else()
-  message(">>> Normal test")
-  add_compile_definitions(ENABLE_TESTR ENABLE_TEST1 ENABLE_TEST1A
-                           ENABLE_TEST2 ENABLE_TEST3 ENABLE_TEST4
-                           ENABLE_TEST5 ENABLE_TEST6 ENABLE_TEST7)
+    message(">>> Normal test")
+    add_compile_definitions(ENABLE_TESTR ENABLE_TEST1 ENABLE_TEST1A
+                            ENABLE_TEST2 ENABLE_TEST3 ENABLE_TEST4
+                            ENABLE_TEST5 ENABLE_TEST6 ENABLE_TEST7)
 endif()
 
 # add preprocessor-constant DEBUG for Debug-builds
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_VERBOSE_MAKEFILE 1)
-  add_compile_definitions(DEBUG)
+    set(CMAKE_VERBOSE_MAKEFILE 1)
+    add_compile_definitions(DEBUG)
 else()
 endif()
 
 add_subdirectory(lib-st7735)
 target_include_directories(rl_main PRIVATE
-  st7735-testfuncs
+    st7735-testfuncs
 )
 
-target_compile_definitions(
-  lib-st7735
-  PUBLIC
-  PIN_TFT_RST=${SPI_TFT_RST}
-  PIN_TFT_DC=${SPI_TFT_DC}
-  PIN_TFT_CS=${SPI_TFT_CS}
-  )
+target_compile_definitions(lib-st7735 PUBLIC
+    PIN_TFT_RST=${SPI_TFT_RST}
+    PIN_TFT_DC=${SPI_TFT_DC}
+    PIN_TFT_CS=${SPI_TFT_CS}
+)

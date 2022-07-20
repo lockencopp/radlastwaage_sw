@@ -323,7 +323,7 @@ void read_sub(uint sub_num) {
         sub_modules[sub_num].oor_flag = false;
     }
 
-    if ((sub_modules[sub_num].result > 1000.0) || (-999 > sub_modules[sub_num].result)) {
+    if ((sub_modules[sub_num].result > 240.0) || (-100 > sub_modules[sub_num].result)) {
         sub_modules[sub_num].result = 0.0f;
         sub_modules[sub_num].oor_flag = true;
     }
@@ -359,13 +359,13 @@ void scan_button() {
 
 void print_KG() {
     for (int i = 0; i < NUM_SUBS; i++) {
-        if(sub_modules[i].oor_flag == true){
-            drawText(64, line_vertical_position[i], "   NA", ST7735_WHITE, ST7735_BLACK, 3);
-        } else{
+        if (sub_modules[i].oor_flag == true) {
+            drawText(39, line_vertical_position[i], "   OOR", ST7735_WHITE, ST7735_BLACK, 3);
+        } else {
             sprintf(disp_buf, "%*s%.1f", pad_left_calc(sub_modules[i].result), "", sub_modules[i].result);
             drawText(39, line_vertical_position[i], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
         }
-        
+
     }
 }
 
@@ -379,7 +379,7 @@ void print_percent() {
     }
     if ((result_sum == 0) || (oor_akk > 0)) {
         for (int i = 0; i < NUM_SUBS; i++) {
-            drawText(64, line_vertical_position[i], "   NA", ST7735_WHITE, ST7735_BLACK, 3);
+            drawText(39, line_vertical_position[i], "    NA", ST7735_WHITE, ST7735_BLACK, 3);
         }
     } else {
         for (int i = 0; i < NUM_SUBS; i++) {
