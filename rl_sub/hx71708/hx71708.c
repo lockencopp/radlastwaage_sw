@@ -35,16 +35,15 @@ int HX71708_read(HX71708_t *inst) {
     int j = 23;
     for (int i = 0; i < 25; i++) {
         gpio_put(inst->sck, 1);
-
+        delay_asm(3);
+        gpio_put(inst->sck, 0);
         if (j >= 0)
             hx_data |= (gpio_get(inst->dout) << j);
         else
             delay_asm(2);
 
         j--;
-
-        gpio_put(inst->sck, 0);
-        delay_asm(3);
+        delay_asm(1);
     }
     if (hx_data > 0x7fffff) {
         hx_data -= 0x1000000;
