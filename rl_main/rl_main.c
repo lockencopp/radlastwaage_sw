@@ -53,7 +53,7 @@
 
 #define MAX_PADDING     3
 
-#define KG_CALIB_FACTOR 13200.0f
+#define KG_CALIB_FACTOR 26700.0f
 
 typedef struct Pin {
     uint pin_num;

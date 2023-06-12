@@ -139,9 +139,9 @@ int main() {
             if ((time_now % 100) == 0) {
 
                 printf("%c%c%c%c", 0x1B, 0x5B, 0x32, 0x4A);
-                printf("HX1: %.1f\t%d\t%d\n", (hx1_data / 13.2), hx1.offset, hx1.sample_stats.sample_time);
-                printf("HX2: %.1f\t%d\t%d\n", (hx2_data / 13.2), hx2.offset, hx2.sample_stats.sample_time);
-                printf("Total: %.1f\n", ((hx1_data + hx2_data) / 13.2));
+                printf("HX1: %.1f\t%d\t%d\n", (hx1_data / 26.7), hx1.offset, hx1.sample_stats.sample_time);
+                printf("HX2: %.1f\t%d\t%d\n", (hx2_data / 26.7), hx2.offset, hx2.sample_stats.sample_time);
+                printf("Total: %.1f\n", ((hx1_data + hx2_data) / 26.7));
                 printf("Timerdiff: %d\n", timerval2 - timerval1);
                 printf("In Buffer: ");
                 printf(in_buf);
