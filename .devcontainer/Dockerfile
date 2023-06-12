@@ -1,12 +1,9 @@
-FROM debian:11.3
+FROM ubuntu
 
 # Run Updates
-RUN apt-get update && apt-get upgrade -y
-
-# Install prerequisites for PicoSDK
-RUN apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential
-RUN apt-get install -y gdb-multiarch
-RUN apt-get install -y wget git python3
+RUN apt update -y && apt upgrade -y && apt install -y cmake gcc-arm-none-eabi \
+    libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential gdb-multiarch \
+    wget git python3
 # Link gdb to arm-none-eabi-gdb for debugging
 RUN ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
 
