@@ -1,3 +1,7 @@
+// Author: Christoph Deussen
+//
+// Driver for HX71708 load cell ADC
+
 #ifndef HX71708_H
 #define HX71708_H
 
