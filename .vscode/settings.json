@@ -11,6 +11,11 @@
         "cmath": "c",
         "*.tcc": "c",
         "cinttypes": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "hx71708.h": "c",
+        "compare": "c",
+        "exception": "c",
+        "limits": "c",
+        "type_traits": "c"
     }
 }
