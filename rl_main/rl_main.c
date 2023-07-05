@@ -15,7 +15,7 @@
 
 #define BUF_LEN         4
 #define NUM_SUBS        4
-#define NUM_MODES       2
+#define NUM_MODES       3
 
 #define SPI_COM_PORT    spi0
 #define SPI_COM_RX      16
@@ -45,8 +45,16 @@ typedef struct Pin {
 
 typedef enum Mode {
     kKilogram   = 0,
-    kPercent    = 1
+    kPercent    = 1,
+    kCross      = 2
 } Mode;
+
+typedef enum SubName {
+    kFL     = 0,
+    kFR     = 1,
+    kRL     = 2,
+    kRR     = 3
+} SubName;
 
 typedef struct SubModule {
     uint led_pin;
@@ -97,11 +105,14 @@ char disp_buf[10];
 int pad_left_calc(float input);
 void init_pins();
 void init_hw();
+void print_normal_numbers();
+void print_cross_numbers();
 void init_tft();
 void read_sub(uint sub_num);
 void scan_button();
 void print_KG();
 void print_percent();
+void print_cross();
 
 int main() {
     // Enable UART so we can print
@@ -157,17 +168,20 @@ int main() {
                     if (mode_next == kPercent) {
                         mode_switch_cnt++;
                         if (mode_switch_cnt == 1) {
+                            //draw rectangle to indicate switch to percent mode
                             fillRect(62, 40, 36, 48, ST7735_BLACK);
                             drawRectWH(62, 40, 36, 48, ST7735_WHITE);
                             drawText(65, 43, "%", ST7735_WHITE, ST7735_BLACK, 6);
                         } else if (mode_switch_cnt > 10) {
+                            //clear rectangle after time has elapsed
                             drawRectWH(62, 40, 36, 48, ST7735_BLACK);
                             drawText(65, 43, " ", ST7735_WHITE, ST7735_BLACK, 6);
                             drawFastHLine(10, 30, 100, ST7735_WHITE);
                             drawFastHLine(10, 62, 100, ST7735_WHITE);
                             drawFastHLine(10, 94, 100, ST7735_WHITE);
-                            drawFastVLine(0, 0, 64, ST7735_BLACK);
-                            drawFastVLine(0, 63, 64, ST7735_WHITE);
+                            //move the mode indication bar to the correct position for next mode
+                            drawFastVLine(0, 0, 43, ST7735_BLACK);
+                            drawFastVLine(0, 44, 42, ST7735_WHITE);
                             mode_now = kPercent;
                             mode_switch_cnt = 0;
                         }
@@ -177,27 +191,59 @@ int main() {
                     break;
 
                 case kPercent:
-                    if (mode_next == kKilogram) {
+                    if (mode_next == kCross) {
                         mode_switch_cnt++;
                         if (mode_switch_cnt == 1) {
+                            //draw rectangle to indicate switch to cross mode
                             fillRect(44, 40, 72, 48, ST7735_BLACK);
                             drawRectWH(44, 40, 72, 48, ST7735_WHITE);
-                            drawText(47, 43, "kg", ST7735_WHITE, ST7735_BLACK, 6);
+                            drawText(47, 43, "cr", ST7735_WHITE, ST7735_BLACK, 6);
                         } else if (mode_switch_cnt > 10) {
+                            //clear rectangle after time has elapsed
                             drawRectWH(44, 40, 72, 48, ST7735_BLACK);
                             drawText(47, 43, "  ", ST7735_WHITE, ST7735_BLACK, 6);
                             drawFastHLine(10, 30, 100, ST7735_WHITE);
                             drawFastHLine(10, 62, 100, ST7735_WHITE);
                             drawFastHLine(10, 94, 100, ST7735_WHITE);
-                            drawFastVLine(0, 0, 64, ST7735_WHITE);
-                            drawFastVLine(0, 63, 64, ST7735_BLACK);
-                            mode_now = kKilogram;
+                            //move the mode indication bar to the correct position for next mode
+                            drawFastVLine(0, 44, 42, ST7735_BLACK);
+                            drawFastVLine(0, 85, 43, ST7735_WHITE);
+                            print_cross_numbers();
+                            mode_now = kCross;
                             mode_switch_cnt = 0;
                         }
                     } else {
                         print_percent();
                     }
                     break;
+
+                case kCross:
+                    if (mode_next == kKilogram) {
+                        mode_switch_cnt++;
+                        if (mode_switch_cnt == 1) {
+                            //draw rectangle to indicate switch to kg mode
+                            fillRect(44, 40, 72, 48, ST7735_BLACK);
+                            drawRectWH(44, 40, 72, 48, ST7735_WHITE);
+                            drawText(47, 43, "kg", ST7735_WHITE, ST7735_BLACK, 6);
+                        } else if (mode_switch_cnt > 10) {
+                            //clear rectangle after time has elapsed
+                            drawRectWH(44, 40, 72, 48, ST7735_BLACK);
+                            drawText(47, 43, "  ", ST7735_WHITE, ST7735_BLACK, 6);
+                            drawFastHLine(10, 30, 100, ST7735_WHITE);
+                            drawFastHLine(10, 62, 100, ST7735_WHITE);
+                            drawFastHLine(10, 94, 100, ST7735_WHITE);
+                            //move the mode indication bar to the correct position for next mode
+                            drawFastVLine(0, 85, 43, ST7735_BLACK);
+                            drawFastVLine(0, 0, 43, ST7735_WHITE);
+                            print_normal_numbers();
+                            mode_now = kKilogram;
+                            mode_switch_cnt = 0;
+                        }
+                    } else {
+                        print_cross();
+                    }
+                    break;
+
                 default:
                     break;
                 }
@@ -251,7 +297,31 @@ void init_hw() {
 
     init_pins();
 
+    //gpio_set_pulls(BTN_IN, 1, 0);
+
     btn_last = gpio_get(BTN_IN);
+}
+
+void print_normal_numbers(){
+    sprintf(disp_buf, "1:");
+    drawText(5, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "2:");
+    drawText(5, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "3:");
+    drawText(5, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "4:");
+    drawText(5, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+}
+
+void print_cross_numbers(){
+    sprintf(disp_buf, "12");
+    drawText(5, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "34");
+    drawText(5, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "14");
+    drawText(5, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    sprintf(disp_buf, "23");
+    drawText(5, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
 }
 
 void init_tft() {
@@ -267,16 +337,9 @@ void init_tft() {
     drawFastHLine(10, 30, 100, ST7735_WHITE);
     drawFastHLine(10, 62, 100, ST7735_WHITE);
     drawFastHLine(10, 94, 100, ST7735_WHITE);
-    drawFastVLine(0, 0, 64, ST7735_WHITE);
+    drawFastVLine(0, 0, 43, ST7735_WHITE);
 
-    sprintf(disp_buf, "1:");
-    drawText(5, 4, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-    sprintf(disp_buf, "2:");
-    drawText(5, 36, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-    sprintf(disp_buf, "3:");
-    drawText(5, 68, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
-    sprintf(disp_buf, "4:");
-    drawText(5, 100, disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+    print_normal_numbers();
 }
 
 void read_sub(uint sub_num) {
@@ -369,5 +432,40 @@ void print_percent() {
             sprintf(disp_buf, "%*s%d", pad_left_calc(result_sub_percent) + 2, "", result_sub_percent);
             drawText(39, line_vertical_position[i], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
         }
+    }
+}
+
+void print_cross() {
+    float result_sum    = 0.0f;
+    uint8_t oor_akk     = 0;
+
+    for (int i = 0; i < NUM_SUBS; i++) {
+        result_sum += sub_modules[i].result;
+        oor_akk    += (uint8_t)sub_modules[i].oor_flag;
+    }
+    if ((result_sum == 0) || (oor_akk > 0)) {
+        for (int i = 0; i < NUM_SUBS; i++) {
+            drawText(39, line_vertical_position[i], "    NA", ST7735_WHITE, ST7735_BLACK, 3);
+        }
+    } else {
+        //print front
+        int result_front = (int)(((sub_modules[kFL].result + sub_modules[kFR].result) * 100.0) / result_sum);
+        sprintf(disp_buf, "%*s%d", pad_left_calc(result_front) + 2, "", result_front);
+        drawText(39, line_vertical_position[0], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+
+        //print rear
+        int result_rear = (int)(((sub_modules[kRL].result + sub_modules[kRR].result) * 100.0) / result_sum);
+        sprintf(disp_buf, "%*s%d", pad_left_calc(result_rear) + 2, "", result_rear);
+        drawText(39, line_vertical_position[1], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+
+        //print cross FL+RR
+        int result_cross_FLRR = (int)(((sub_modules[kFL].result + sub_modules[kRR].result) * 100.0) / result_sum);
+        sprintf(disp_buf, "%*s%d", pad_left_calc(result_cross_FLRR) + 2, "", result_cross_FLRR);
+        drawText(39, line_vertical_position[2], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
+
+        //print cross FR+RL
+        int result_cross_FRRL = (int)(((sub_modules[kFR].result + sub_modules[kRL].result) * 100.0) / result_sum);
+        sprintf(disp_buf, "%*s%d", pad_left_calc(result_cross_FRRL) + 2, "", result_cross_FRRL);
+        drawText(39, line_vertical_position[3], disp_buf, ST7735_WHITE, ST7735_BLACK, 3);
     }
 }
