@@ -234,8 +234,6 @@ void init_hw() {
 
     init_pins();
 
-    gpio_set_pulls(BTN_IN, 1, 0);
-
     btn_last = gpio_get(BTN_IN);
 }
 
