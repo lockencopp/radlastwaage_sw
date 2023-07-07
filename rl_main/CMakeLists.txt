@@ -88,3 +88,9 @@ target_compile_definitions(lib-st7735 PUBLIC
     PIN_TFT_DC=${SPI_TFT_DC}
     PIN_TFT_CS=${SPI_TFT_CS}
 )
+
+include_directories(user_lib/)
+
+target_sources(rl_main PRIVATE
+    user_lib/display_helpers.c
+)
